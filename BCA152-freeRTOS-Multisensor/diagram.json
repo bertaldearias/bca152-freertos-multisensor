@@ -1,9 +1,42 @@
 {
   "version": 1,
-  "author": "Bert",
+  "author": "Bert Alde ARIAS",
   "editor": "wokwi",
   "parts": [
-    { "type": "wokwi-esp32-devkit-v1", "id": "esp32", "top": 0, "left": 0, "attrs": {} }
+    { "type": "wokwi-breadboard", "id": "bb1", "top": -70.2, "left": -179.6, "attrs": {} },
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 134.4, "left": 33.64, "attrs": {} },
+    { "type": "wokwi-dht22", "id": "dht1", "top": -105.3, "left": -63, "attrs": {} },
+    {
+      "type": "wokwi-photoresistor-sensor",
+      "id": "ldr1",
+      "top": 185.6,
+      "left": -210.4,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 263.15,
+      "left": -38.4,
+      "attrs": { "value": "10000" }
+    }
   ],
-  "connections": []
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "esp:3V3", "bb1:bp.1", "red", [ "h0" ] ],
+    [ "esp:GND.2", "bb1:bn.50", "black", [ "v0", "h288" ] ],
+    [ "ldr1:VCC", "bb1:bp.10", "red", [ "h0" ] ],
+    [ "dht1:VCC", "bb1:12t.d", "", [ "$bb" ] ],
+    [ "dht1:SDA", "bb1:13t.d", "", [ "$bb" ] ],
+    [ "dht1:NC", "bb1:14t.d", "", [ "$bb" ] ],
+    [ "dht1:GND", "bb1:15t.d", "", [ "$bb" ] ],
+    [ "dht1:VCC", "bb1:bp.2", "red", [ "v19.2", "h-76.8" ] ],
+    [ "dht1:GND", "bb1:bn.11", "black", [ "v0" ] ],
+    [ "esp:4", "dht1:SDA", "green", [ "h9.6", "v-249.6", "h-182.4" ] ],
+    [ "ldr1:GND", "r1:1", "black", [ "h9.6", "v28.4", "h-9.6" ] ],
+    [ "r1:2", "bb1:bn.15", "black", [ "v0" ] ],
+    [ "ldr1:AO", "esp:34", "gold", [ "h19.2", "v-29.5" ] ]
+  ],
+  "dependencies": {}
 }
