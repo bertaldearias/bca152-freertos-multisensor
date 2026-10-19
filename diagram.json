@@ -19,6 +19,13 @@
       "top": 263.15,
       "left": -38.4,
       "attrs": { "value": "10000" }
+    },
+    {
+      "type": "board-ssd1306",
+      "id": "oled1",
+      "top": 175.94,
+      "left": 163.43,
+      "attrs": { "i2cAddress": "0x3c" }
     }
   ],
   "connections": [
@@ -27,16 +34,20 @@
     [ "esp:3V3", "bb1:bp.1", "red", [ "h0" ] ],
     [ "esp:GND.2", "bb1:bn.50", "black", [ "v0", "h288" ] ],
     [ "ldr1:VCC", "bb1:bp.10", "red", [ "h0" ] ],
-    [ "dht1:VCC", "bb1:12t.d", "", [ "$bb" ] ],
-    [ "dht1:SDA", "bb1:13t.d", "", [ "$bb" ] ],
-    [ "dht1:NC", "bb1:14t.d", "", [ "$bb" ] ],
-    [ "dht1:GND", "bb1:15t.d", "", [ "$bb" ] ],
     [ "dht1:VCC", "bb1:bp.2", "red", [ "v19.2", "h-76.8" ] ],
     [ "dht1:GND", "bb1:bn.11", "black", [ "v0" ] ],
     [ "esp:4", "dht1:SDA", "green", [ "h9.6", "v-249.6", "h-182.4" ] ],
     [ "ldr1:GND", "r1:1", "black", [ "h9.6", "v28.4", "h-9.6" ] ],
     [ "r1:2", "bb1:bn.15", "black", [ "v0" ] ],
-    [ "ldr1:AO", "esp:34", "gold", [ "h19.2", "v-29.5" ] ]
+    [ "ldr1:AO", "esp:34", "gold", [ "h19.2", "v-29.5" ] ],
+    [ "dht1:VCC", "bb1:12t.d", "", [ "$bb" ] ],
+    [ "dht1:SDA", "bb1:13t.d", "", [ "$bb" ] ],
+    [ "dht1:NC", "bb1:14t.d", "", [ "$bb" ] ],
+    [ "dht1:GND", "bb1:15t.d", "", [ "$bb" ] ],
+    [ "oled1:SDA", "esp:21", "gray", [ "h57.67", "v96", "h-134.4", "v-67.2" ] ],
+    [ "esp:22", "oled1:SCL", "white", [ "h19.2", "v-38.4", "h66.9" ] ],
+    [ "oled1:VCC", "bb1:bp.31", "red", [ "v0" ] ],
+    [ "oled1:GND", "bb1:bn.30", "black", [ "v0" ] ]
   ],
   "dependencies": {}
 }
