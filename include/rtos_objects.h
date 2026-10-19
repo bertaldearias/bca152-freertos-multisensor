@@ -6,5 +6,6 @@
 extern QueueHandle_t     displayQueue;
 extern QueueHandle_t     alarmQueue;
 extern SemaphoreHandle_t serialMutex;
+extern QueueHandle_t modeQueue;
 
 void rtos_objects_init(void);
