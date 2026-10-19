@@ -8,6 +8,7 @@
 #include "display.h"
 #include "input.h"
 #include "alarm.h"
+#include "motion.h"
 
 void app_main(void)
 {
@@ -22,9 +23,11 @@ void app_main(void)
     display_init();
     input_init();
     alarm_init();
+    motion_init();
 
     xTaskCreate(InputTask,   "InputTask",   3072, NULL, 3, NULL);
     xTaskCreate(SensorTask,  "SensorTask",  4096, NULL, 2, NULL);
     xTaskCreate(AlarmTask,   "AlarmTask",   3072, NULL, 2, NULL);
     xTaskCreate(DisplayTask, "DisplayTask", 4096, NULL, 1, NULL);
+    motion_task_start();
 }
