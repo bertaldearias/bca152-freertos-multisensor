@@ -9,6 +9,7 @@
 #include "input.h"
 #include "alarm.h"
 #include "motion.h"
+#include "state_task.h"
 
 void app_main(void)
 {
@@ -30,4 +31,5 @@ void app_main(void)
     xTaskCreate(AlarmTask,   "AlarmTask",   3072, NULL, 2, NULL);
     xTaskCreate(DisplayTask, "DisplayTask", 4096, NULL, 1, NULL);
     motion_task_start();
+    state_task_start();
 }
