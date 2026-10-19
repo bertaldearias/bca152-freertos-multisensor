@@ -2,6 +2,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "rtos_objects.h"
+#include "app_events.h"
 #include "sensors.h"
 #include "display.h"
 #include "input.h"
@@ -13,6 +14,7 @@ void app_main(void)
     printf("System starting...\n");
 
     // Objects must exist BEFORE any task that uses them is created
+    app_events_init();
     rtos_objects_init();
     sensors_init();
     display_init();
