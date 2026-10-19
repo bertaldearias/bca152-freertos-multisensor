@@ -1,16 +1,22 @@
 #include <stdio.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
+#include "esp_err.h"
 #include "input.h"
 #include "display_mode.h"
 #include "rtos_objects.h"
 
-#define ENC_CLK_GPIO        GPIO_NUM_32
-#define ENC_DT_GPIO         GPIO_NUM_33
-#define ENC_SW_GPIO         GPIO_NUM_25
-#define INPUT_PERIOD_MS     2
-#define STEPS_PER_DETENT    4    // usba kung 2 ka click ang kinahanglan para 1 ka page
+#define ENC_CLK_GPIO     GPIO_NUM_32
+#define ENC_DT_GPIO      GPIO_NUM_33
+#define ENC_SW_GPIO      GPIO_NUM_25
+#define STEPS_PER_DETENT 4
+
+// vTaskDelayUntil() asserts if the period is 0 ticks.
+// At 100 Hz tick rate, pdMS_TO_TICKS(2) == 0, so force a minimum of 1 tick.
+#define INPUT_PERIOD_TICKS ((pdMS_TO_TICKS(2) > 0) ? pdMS_TO_TICKS(2) : 1)
 
 // Quadrature decoder: index = (previous << 2) | current, each = (CLK << 1) | DT
 static const int8_t enc_table[16] = {
@@ -46,13 +52,13 @@ void input_init(void)
 void InputTask(void *pvParameters)
 {
     DisplayMode mode = DISPLAY_MODE_TEMPERATURE;
-    uint8_t prev = (gpio_get_level(ENC_CLK_GPIO) << 1) | gpio_get_level(ENC_DT_GPIO);
+    uint8_t prev = (uint8_t)((gpio_get_level(ENC_CLK_GPIO) << 1) | gpio_get_level(ENC_DT_GPIO));
     int acc = 0;
 
     TickType_t lastWakeTime = xTaskGetTickCount();
     for (;;)
     {
-        uint8_t curr = (gpio_get_level(ENC_CLK_GPIO) << 1) | gpio_get_level(ENC_DT_GPIO);
+        uint8_t curr = (uint8_t)((gpio_get_level(ENC_CLK_GPIO) << 1) | gpio_get_level(ENC_DT_GPIO));
         acc += enc_table[(prev << 2) | curr];
         prev = curr;
 
@@ -75,6 +81,6 @@ void InputTask(void *pvParameters)
             xSemaphoreGive(serialMutex);
         }
 
-        vTaskDelayUntil(&lastWakeTime, pdMS_TO_TICKS(INPUT_PERIOD_MS));
+        vTaskDelayUntil(&lastWakeTime, INPUT_PERIOD_TICKS);
     }
 }
