@@ -42,7 +42,7 @@ void SensorTask(void *pvParameters)
 
         int raw = 0;
         if (adc_oneshot_read(adc1_handle, LDR_ADC_CHANNEL, &raw) == ESP_OK) {
-            data.lightLevel = (raw * 100) / 4095;
+            data.lightLevel = ((4063 - raw) * 100 + 2015) / 4031;
         }
 
         xQueueOverwrite(displayQueue, &data);
