@@ -4,6 +4,7 @@
 #include "rtos_objects.h"
 #include "sensors.h"
 #include "display.h"
+#include "input.h"
 
 void app_main(void)
 {
@@ -13,7 +14,9 @@ void app_main(void)
     rtos_objects_init();
     sensors_init();
     display_init();
+    input_init();
 
+    xTaskCreate(InputTask,   "InputTask",   3072, NULL, 3, NULL);
     xTaskCreate(SensorTask,  "SensorTask",  4096, NULL, 2, NULL);
     xTaskCreate(DisplayTask, "DisplayTask", 4096, NULL, 1, NULL);
 }
