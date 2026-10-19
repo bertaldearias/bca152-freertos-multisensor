@@ -27,7 +27,14 @@
       "left": 163.43,
       "attrs": { "i2cAddress": "0x3c" }
     },
-    { "type": "wokwi-ky-040", "id": "enc1", "top": 347.3, "left": -125.6, "attrs": {} }
+    { "type": "wokwi-ky-040", "id": "enc1", "top": 347.3, "left": -125.6, "attrs": {} },
+    {
+      "type": "wokwi-buzzer",
+      "id": "bz1",
+      "top": -16.8,
+      "left": 49.8,
+      "attrs": { "volume": "0.1" }
+    }
   ],
   "connections": [
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
@@ -37,7 +44,7 @@
     [ "ldr1:VCC", "bb1:bp.10", "red", [ "h0" ] ],
     [ "dht1:VCC", "bb1:bp.2", "red", [ "v19.2", "h-76.8" ] ],
     [ "dht1:GND", "bb1:bn.11", "black", [ "v0" ] ],
-    [ "esp:4", "dht1:SDA", "green", [ "h9.6", "v-249.6", "h-182.4" ] ],
+    [ "esp:4", "dht1:SDA", "blue", [ "h9.6", "v-249.6", "h-182.4" ] ],
     [ "ldr1:GND", "r1:1", "black", [ "h9.6", "v28.4", "h-9.6" ] ],
     [ "r1:2", "bb1:bn.15", "black", [ "v0" ] ],
     [ "ldr1:AO", "esp:34", "gold", [ "h19.2", "v-29.5" ] ],
@@ -48,12 +55,16 @@
     [ "enc1:CLK", "esp:32", "orange", [ "h38.4", "v-134.4" ] ],
     [ "enc1:DT", "esp:33", "cyan", [ "v-76.7", "h47.85" ] ],
     [ "enc1:SW", "esp:25", "magenta", [ "h9.6", "v-95.9", "h-48", "v-38.4" ] ],
+    [ "enc1:VCC", "bb1:bp.37", "red", [ "h0" ] ],
+    [ "enc1:GND", "bb1:bn.26", "black", [ "h163.2", "v0.8" ] ],
+    [ "esp:27", "bb1:26b.j", "green", [ "h-28.65", "v-163.2" ] ],
+    [ "bb1:25b.i", "bb1:bn.20", "black", [ "v0" ] ],
     [ "dht1:VCC", "bb1:12t.d", "", [ "$bb" ] ],
     [ "dht1:SDA", "bb1:13t.d", "", [ "$bb" ] ],
     [ "dht1:NC", "bb1:14t.d", "", [ "$bb" ] ],
     [ "dht1:GND", "bb1:15t.d", "", [ "$bb" ] ],
-    [ "enc1:VCC", "bb1:bp.37", "red", [ "h0" ] ],
-    [ "enc1:GND", "bb1:bn.26", "black", [ "h163.2", "v0.8" ] ]
+    [ "bz1:1", "bb1:25b.h", "", [ "$bb" ] ],
+    [ "bz1:2", "bb1:26b.h", "", [ "$bb" ] ]
   ],
   "dependencies": {}
 }
