@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/i2c_master.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "display.h"
+#include "display_mode.h"
 #include "sensors.h"
 #include "rtos_objects.h"
 
@@ -159,13 +161,37 @@ void display_init(void)
     ESP_ERROR_CHECK(oled_flush());
 }
 
-static void render_temperature(float temperature)
+static void render_page(DisplayMode mode, const SensorData *d)
 {
     char line[16];
+    const char *title;
+
+    switch (mode) {
+    case DISPLAY_MODE_TEMPERATURE:
+        title = "Temperature";
+        snprintf(line, sizeof(line), "%.1f C", d->temperature);
+        break;
+    case DISPLAY_MODE_HUMIDITY:
+        title = "Humidity";
+        snprintf(line, sizeof(line), "%.1f %%", d->humidity);
+        break;
+    case DISPLAY_MODE_LIGHT:
+        title = "Light";
+        snprintf(line, sizeof(line), "%d %%", d->lightLevel);
+        break;
+    case DISPLAY_MODE_MOTION:
+        title = "Motion";
+        snprintf(line, sizeof(line), "%s", d->motionDetected ? "YES" : "NONE");
+        break;
+    default:
+        title = "?";
+        line[0] = '\0';
+        break;
+    }
+
     fb_clear();
     draw_text(0, 0, "ROOM MONITOR", 1);
-    draw_text(0, 18, "Temperature", 1);
-    snprintf(line, sizeof(line), "%.1f C", temperature);
+    draw_text(0, 18, title, 1);
     draw_text(0, 36, line, 3);
     if (oled_flush() != ESP_OK) {
         ESP_LOGE(TAG, "OLED flush failed");
@@ -174,12 +200,26 @@ static void render_temperature(float temperature)
 
 void DisplayTask(void *pvParameters)
 {
-    SensorData data;
+    SensorData data = {0};
+    DisplayMode mode = DISPLAY_MODE_TEMPERATURE;
+    bool dirty = true;
+
     for (;;)
     {
-        // Blocks (Blocked state) until SensorTask publishes new data
-        if (xQueueReceive(displayQueue, &data, portMAX_DELAY) == pdTRUE) {
-            render_temperature(data.temperature);
+        // Blocks up to 50 ms: wakes early if new sensor data arrives
+        if (xQueueReceive(displayQueue, &data, pdMS_TO_TICKS(50)) == pdTRUE) {
+            dirty = true;
+        }
+
+        DisplayMode newMode;
+        if (xQueueReceive(modeQueue, &newMode, 0) == pdTRUE) {
+            mode = newMode;
+            dirty = true;
+        }
+
+        if (dirty) {
+            render_page(mode, &data);
+            dirty = false;
         }
     }
 }
