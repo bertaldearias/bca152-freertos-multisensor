@@ -10,6 +10,7 @@
 #include "display_mode.h"
 #include "sensors.h"
 #include "rtos_objects.h"
+#include "app_events.h"
 
 #define OLED_SDA_GPIO 21
 #define OLED_SCL_GPIO 22
@@ -84,9 +85,27 @@ static esp_err_t oled_flush(void)
     return ESP_OK;
 }
 
+// 0xAE = display off (sleep), 0xAF = display on. RAM contents are preserved.
+static void oled_power(bool on)
+{
+    const uint8_t cmd = on ? 0xAF : 0xAE;
+    if (oled_send_cmds(&cmd, 1) != ESP_OK) {
+        ESP_LOGE(TAG, "OLED power command failed");
+    }
+}
+
 /* ---------- drawing helpers ---------- */
 
 static void fb_clear(void) { memset(fb, 0, sizeof(fb)); }
+
+// Clear the framebuffer and push the blank screen to the panel.
+static void oled_blank(void)
+{
+    fb_clear();
+    if (oled_flush() != ESP_OK) {
+        ESP_LOGE(TAG, "OLED blank failed");
+    }
+}
 
 static void fb_pixel(int x, int y)
 {
@@ -161,7 +180,7 @@ void display_init(void)
     ESP_ERROR_CHECK(oled_flush());
 }
 
-static void render_page(DisplayMode mode, const SensorData *d)
+static void render_page(DisplayMode mode, const SensorData *d, bool alarm)
 {
     char line[16];
     const char *title;
@@ -191,6 +210,9 @@ static void render_page(DisplayMode mode, const SensorData *d)
 
     fb_clear();
     draw_text(0, 0, "ROOM MONITOR", 1);
+    if (alarm) {
+        draw_text(90, 0, "ALARM!", 1);      // EVENT_ALARM indicator (top-right)
+    }
     draw_text(0, 18, title, 1);
     draw_text(0, 36, line, 3);
     if (oled_flush() != ESP_OK) {
@@ -202,14 +224,14 @@ void DisplayTask(void *pvParameters)
 {
     SensorData data = {0};
     DisplayMode mode = DISPLAY_MODE_TEMPERATURE;
-    bool dirty = true;
+    bool dirty      = true;
+    bool lastActive = true;
+    bool lastAlarm  = false;
 
     for (;;)
     {
         // Blocks up to 50 ms: wakes early if new sensor data arrives
-        if (xQueueReceive(displayQueue, &data, pdMS_TO_TICKS(50)) == pdTRUE) {
-            dirty = true;
-        }
+        bool gotData = (xQueueReceive(displayQueue, &data, pdMS_TO_TICKS(50)) == pdTRUE);
 
         DisplayMode newMode;
         if (xQueueReceive(modeQueue, &newMode, 0) == pdTRUE) {
@@ -217,8 +239,31 @@ void DisplayTask(void *pvParameters)
             dirty = true;
         }
 
-        if (dirty) {
-            render_page(mode, &data);
+        // Only the level bits are read here. EVENT_MOTION is consumed
+        // (cleared) by StateTask, so DisplayTask must not depend on it.
+        EventBits_t bits = xEventGroupGetBits(g_system_events);
+        bool active = (bits & EVENT_ACTIVE) != 0;
+        bool alarm  = (bits & EVENT_ALARM)  != 0;
+
+        if (gotData || alarm != lastAlarm) {
+            lastAlarm = alarm;
+            dirty = true;
+        }
+
+        if (active != lastActive) {          // ACTIVE <-> INACTIVE transition
+            lastActive = active;
+            if (active) {
+                oled_power(true);            // wake the panel
+                dirty = true;                // redraw the current page
+            } else {
+                oled_blank();                // blank the pixels first
+                oled_power(false);           // then put the panel to sleep
+            }
+        }
+
+        // While INACTIVE the OLED stays off and no I2C traffic is generated
+        if (active && dirty) {
+            render_page(mode, &data, alarm);
             dirty = false;
         }
     }
